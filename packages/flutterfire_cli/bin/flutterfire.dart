@@ -57,7 +57,18 @@ Future<void> main(List<String> arguments) async {
     // upload-crashlytics-symbols & bundle-service-file scripts are ran from Xcode environment
     if (!arguments.contains('upload-crashlytics-symbols') &&
         !arguments.contains('bundle-service-file')) {
-      flutterApp = await FlutterApp.load(Directory.current);
+      // Parse --cwd flag to allow running from a different directory.
+      // This enables running the CLI from a cloned repo while targeting
+      // the user's Flutter project.
+      String? cwdArg;
+      for (int i = 0; i < arguments.length; i++) {
+        if (arguments[i].startsWith('--cwd=')) {
+          cwdArg = arguments[i].substring(6);
+          break;
+        }
+      }
+      final projectDir = cwdArg != null ? Directory(cwdArg) : Directory.current;
+      flutterApp = await FlutterApp.load(projectDir);
     }
 
     await FlutterFireCommandRunner(flutterApp).run(arguments);

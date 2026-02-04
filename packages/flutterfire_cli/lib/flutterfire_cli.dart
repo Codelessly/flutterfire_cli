@@ -16,3 +16,11 @@
  */
 
 export 'src/common/strings.dart' show FlutterFireException;
+export 'src/common/utils.dart' show writeToFirebaseJson;
+export 'src/firebase.dart'
+    show FirebaseCliConfig, globalFirebaseCliConfig;
+export 'src/firebase/firebase_dart_configuration_write.dart'
+    show FirebaseDartConfigurationWrite;
+export 'src/firebase/firebase_platform_options.dart'
+    show FirebasePlatformOptions, fetchAllFirebaseOptions;
+export 'src/flutter_app.dart' show FlutterApp;

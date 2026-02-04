@@ -28,16 +28,62 @@ import 'common/utils.dart';
 import 'firebase/firebase_app.dart';
 import 'firebase/firebase_project.dart';
 
+/// Configuration for customizing the Firebase CLI executable.
+///
+/// This allows using a custom Firebase CLI installation (e.g., a forked version
+/// or running via node directly) instead of the default 'firebase' command.
+///
+/// Example usage with node:
+/// ```dart
+/// globalFirebaseCliConfig = FirebaseCliConfig(
+///   executable: 'node',
+///   baseArgs: ['/path/to/firebase.js'],
+/// );
+/// ```
+class FirebaseCliConfig {
+  const FirebaseCliConfig({
+    this.executable = 'firebase',
+    this.baseArgs = const [],
+    this.environment = const {},
+    this.workingDirectory,
+  });
+
+  /// The executable to run (e.g., 'firebase', 'node', 'npx').
+  final String executable;
+
+  /// Base arguments to prepend to all commands (e.g., ['/path/to/firebase.js']).
+  final List<String> baseArgs;
+
+  /// Additional environment variables to set when running commands.
+  final Map<String, String> environment;
+
+  /// The working directory for commands. If null, uses Directory.current.
+  final String? workingDirectory;
+
+  /// Default configuration using the standard 'firebase' CLI.
+  static const FirebaseCliConfig defaultConfig = FirebaseCliConfig();
+}
+
+/// Global configuration for the Firebase CLI.
+/// Set this before calling any Firebase functions to use a custom CLI.
+FirebaseCliConfig? globalFirebaseCliConfig;
+
 /// Simple check to verify Firebase Tools CLI is installed.
 bool? _existsCache;
 Future<bool> exists() async {
   if (_existsCache != null) {
     return _existsCache!;
   }
+  final config = globalFirebaseCliConfig;
+  final executable = config?.executable ?? 'firebase';
+  final args = [...?config?.baseArgs, '--version'];
+
   final process = await Process.run(
-    'firebase',
-    ['--version'],
+    executable,
+    args,
     runInShell: true,
+    environment: config?.environment,
+    workingDirectory: config?.workingDirectory,
   );
   return _existsCache = process.exitCode == 0;
 }
@@ -79,8 +125,12 @@ Future<Map<String, dynamic>> runFirebaseCommand(
       logMissingFirebaseCli,
     );
   }
-  final workingDirectoryPath = Directory.current.path;
+  final config = globalFirebaseCliConfig;
+  final executable = config?.executable ?? 'firebase';
+  final workingDirectoryPath =
+      config?.workingDirectory ?? Directory.current.path;
   final execArgs = [
+    ...?config?.baseArgs,
     ...commandAndArgs,
     '--json',
     if (project != null) '--project=$project',
@@ -90,10 +140,11 @@ Future<Map<String, dynamic>> runFirebaseCommand(
   ProcessResult process;
   try {
     process = await Process.run(
-      'firebase',
+      executable,
       execArgs,
       workingDirectory: workingDirectoryPath,
       environment: {
+        ...?config?.environment,
         if (serviceAccount != null)
           'GOOGLE_APPLICATION_CREDENTIALS': serviceAccount,
       },
