@@ -18,6 +18,7 @@
 
 import 'dart:io';
 
+import 'package:flutterfire_cli/flutterfire_cli.dart';
 import 'package:flutterfire_cli/src/command_runner.dart';
 import 'package:flutterfire_cli/src/common/strings.dart';
 import 'package:flutterfire_cli/src/common/utils.dart' as utils;
@@ -54,18 +55,42 @@ Future<void> main(List<String> arguments) async {
 
   try {
     FlutterApp? flutterApp;
-    // Parse --cwd flag to allow running from a different directory.
-    // This enables running the CLI from a cloned repo while targeting
-    // the user's Flutter project. We must remove it from args before
-    // passing to the command runner since it's not a registered option.
+    // Parse custom flags that we handle ourselves before passing to the command runner.
+    // These flags are not registered options in the command runner, so we extract them here.
+    //
+    // Supported custom flags:
+    // --cwd=<path>                    Target Flutter project directory
+    // --firebase-executable=<exe>    Custom Firebase CLI executable (e.g., 'node')
+    // --firebase-base-args=<args>    Comma-separated base args for Firebase CLI
+    // --firebase-workdir=<path>      Working directory for Firebase CLI commands
     String? cwdArg;
+    String? firebaseExecutable;
+    String? firebaseBaseArgs;
+    String? firebaseWorkdir;
     final filteredArgs = <String>[];
+
     for (final arg in arguments) {
       if (arg.startsWith('--cwd=')) {
         cwdArg = arg.substring(6);
+      } else if (arg.startsWith('--firebase-executable=')) {
+        firebaseExecutable = arg.substring(22);
+      } else if (arg.startsWith('--firebase-base-args=')) {
+        firebaseBaseArgs = arg.substring(21);
+      } else if (arg.startsWith('--firebase-workdir=')) {
+        firebaseWorkdir = arg.substring(19);
       } else {
         filteredArgs.add(arg);
       }
+    }
+
+    // Configure custom Firebase CLI if specified.
+    // This allows using a forked/custom Firebase CLI instead of the system's 'firebase' command.
+    if (firebaseExecutable != null || firebaseBaseArgs != null || firebaseWorkdir != null) {
+      globalFirebaseCliConfig = FirebaseCliConfig(
+        executable: firebaseExecutable ?? 'firebase',
+        baseArgs: firebaseBaseArgs?.split(',') ?? const [],
+        workingDirectory: firebaseWorkdir,
+      );
     }
 
     // upload-crashlytics-symbols & bundle-service-file scripts are ran from Xcode environment
