@@ -38,13 +38,13 @@ extension FirebaseAppleOptions on FirebaseOptions {
     var selectedAppleBundleId = appleBundleIdentifier ??
         (macos ? flutterApp.macosBundleId : flutterApp.iosBundleId);
 
-    if (isCI && selectedAppleBundleId == null) {
+    if (shouldFailInsteadOfPrompt && selectedAppleBundleId == null) {
       final flag = platformIdentifier == kMacos
           ? '--macos-bundle-id'
           : '--ios-bundle-id';
       throw ValidationException(
         platformIdentifier,
-        'A valid bundle Id is required when configuring on CI. Please use the $flag flag.',
+        'A valid bundle Id is required in non-interactive mode (CI or --yes flag). Please use the $flag flag.',
       );
     }
     selectedAppleBundleId ??= promptInput(

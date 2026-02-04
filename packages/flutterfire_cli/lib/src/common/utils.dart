@@ -100,6 +100,23 @@ bool get isCI {
   return ci.isCI;
 }
 
+/// Flag to indicate non-interactive mode (e.g., when --yes is passed).
+/// When true, the CLI should fail with an error instead of prompting for input.
+/// This is set by the config command when --yes flag is used.
+bool _isNonInteractive = false;
+
+/// Sets the non-interactive mode flag.
+/// Call this when --yes flag is passed to prevent interactive prompts.
+void setNonInteractiveMode(bool value) {
+  _isNonInteractive = value;
+}
+
+/// Returns true if the CLI should fail instead of prompting for input.
+/// This is true when running in CI environment OR when --yes flag was passed.
+bool get shouldFailInsteadOfPrompt {
+  return isCI || _isNonInteractive;
+}
+
 int get terminalWidth {
   if (stdout.hasTerminal) {
     return stdout.terminalColumns;

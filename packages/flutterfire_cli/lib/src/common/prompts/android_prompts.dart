@@ -29,7 +29,7 @@ String getAndroidServiceFile({
       );
     }
   } else {
-    if (isCI) {
+    if (shouldFailInsteadOfPrompt) {
       throw ValidationException(
         kAndroid,
         'The path: $serviceFilePath is not a valid path for the Android `google-services.json` file. Please re-run the command with a valid path.',

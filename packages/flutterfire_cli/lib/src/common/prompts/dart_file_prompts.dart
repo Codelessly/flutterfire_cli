@@ -43,7 +43,7 @@ bool promptWriteConfigurationFile({
   final outputFile = File(configurationFilePath);
   final fileExists = outputFile.existsSync();
 
-  if (!fileExists || isCI) {
+  if (!fileExists || shouldFailInsteadOfPrompt) {
     return true;
   } else {
     final shouldOverwrite = promptBool(

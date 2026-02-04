@@ -35,10 +35,10 @@ Future<AppleInputs> appleValidation({
   }
 
   if (buildConfiguration != null && target != null) {
-    if (isCI) {
+    if (shouldFailInsteadOfPrompt) {
       throw ValidationException(
         platform,
-        'Cannot set both target and build configuration in CI.',
+        'Cannot set both target and build configuration in non-interactive mode (CI or --yes flag).',
       );
     }
     // If user has set both, we need to find out which one they want to use
@@ -56,10 +56,10 @@ Future<AppleInputs> appleValidation({
   }
 
   if (serviceFilePath != null && target == null && buildConfiguration == null) {
-    if (isCI) {
+    if (shouldFailInsteadOfPrompt) {
       throw ValidationException(
         platform,
-        'Cannot set service file path without a target or build configuration in CI.',
+        'Cannot set service file path without a target or build configuration in non-interactive mode (CI or --yes flag).',
       );
     }
     // If user has set serviceFilePath, but not a config type, we need to find out which one they want to use
@@ -143,10 +143,10 @@ DartConfigurationFileInputs dartConfigurationFileValidation({
     configurationFilePath: configurationFilePath,
     flutterAppPath: flutterAppPath,
   );
-  if (isCI && !overwrite) {
+  if (shouldFailInsteadOfPrompt && !overwrite) {
     throw ValidationException(
       kDart,
-      'Required to overwrite Dart Firebase options configuration file in CI. Use `--overwrite-firebase-options` or `--yes` flag.',
+      'Required to overwrite Dart Firebase options configuration file in non-interactive mode (CI or --yes flag). Use `--overwrite-firebase-options` or `--yes` flag.',
     );
   }
   final writeConfigurationFile = overwrite ||

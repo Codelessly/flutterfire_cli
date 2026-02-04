@@ -565,6 +565,9 @@ class ConfigCommand extends FlutterFireCommand {
   Future<void> run() async {
     // Has to set during `run()` otherwise `argResults` will be null
     updateDebugMode(argResults!['debug'] as bool);
+    // Set non-interactive mode if --yes flag was passed.
+    // This causes the CLI to fail with errors instead of prompting.
+    setNonInteractiveMode(yes);
     try {
       commandRequiresFlutterApp();
       final reconfigured = await checkIfUserRequiresReconfigure();
